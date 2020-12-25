@@ -16,3 +16,6 @@
 - 새로운 파이썬 가상환경 생성
     - `virtualenv venv --python=python3`
     - venv라는 이름의 가상환경 생성
+    - `python3 -m pip freeze > requirements.txt` 이용하여
+    - 이 프로젝트에 필요한 requriment 를 뽑아낸다.
+    
