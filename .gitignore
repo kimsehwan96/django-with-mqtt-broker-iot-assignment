@@ -1,0 +1,4 @@
+#가상환경
+venv
+#추후 requirements.txt 생성할 예정임 (with pip freeze)
+
