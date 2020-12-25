@@ -19,3 +19,8 @@
     - `python3 -m pip freeze > requirements.txt` 이용하여
     - 이 프로젝트에 필요한 requriment 를 뽑아낸다.
     
+### DB connect
+
+- mysql
+    - "mysqlclient>=1.4.0"
+    
