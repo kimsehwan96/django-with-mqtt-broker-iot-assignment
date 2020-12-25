@@ -2,3 +2,5 @@
 venv
 #추후 requirements.txt 생성할 예정임 (with pip freeze)
 
+#pycache는 git에 올릴 필요가 없다
+webapp/webapp/__pycache__/
