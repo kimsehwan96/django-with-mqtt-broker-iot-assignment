@@ -8,3 +8,4 @@ sqlparse==0.4.1
 
 #for mqtt
 paho-mqtt
+
