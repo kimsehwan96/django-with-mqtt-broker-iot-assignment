@@ -66,7 +66,7 @@ http://sehwanzzang.com:8000/mainApp/
 
 ### 끝 !!!!!!
 
-![5.png](images/5.png)
+![6.png](images/6.png)
 
 - 메인 화면
     - socketio를 통해 실시간 mqtt를 통해 들어온 (esp8266으로부터) 받은 값을 보여준다.
