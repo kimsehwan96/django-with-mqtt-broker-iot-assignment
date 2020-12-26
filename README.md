@@ -9,7 +9,12 @@
     - mqtt broker
 
 - 배포 과정
-    - 좀 생각해보게ㅐㅆ습ㅈㄴ
+    - ec2
+        - git pull origin master
+
+링크
+
+http://sehwanzzang.com:8000/mainApp/
 
 ## firt step
 
@@ -17,26 +22,21 @@
     - `virtualenv venv --python=python3`
     - venv라는 이름의 가상환경 생성
     - `python3 -m pip freeze > requirements.txt` 이용하여
-    - 이 프로젝트에 필요한 requriment 를 뽑아낸다.
-    
-## 작업 중 문제 발생
-- Django에서 정상적인 방법으로 mqtt client를 구현하는건 쉽지 않다.
-- Channel이라는 asgi 프로토콜? 이용 방법이 있다고하는데 오늘 제출이라 일단 포기
+    - 이 프로젝트에 필요한 requirements.txt 를 뽑아낸다.
 
 ### 작업 방법
 
-- django 개발 서버가 뜰 때, flask-socketio 서버를 multiprocess로 fork한다.
+- django 개발 서버가 뜰 때, flask-socketio 서버를 스레드 분리한다.
 - 이놈은 9999번 포트 쓸 것임.
 - 웹 프론트 페이지에서  localhost:9999번과 socketio 사용해서 실시간 데이터 출력 할 예정 (아주 원시적인...)
 - 참 어렵다
 
-### 아두이노는 다음과 같이 데이터를 5초 주기로 올린다.
+### 아두이노는 다음과 같이 데이터를 20초 주기로 올린다.
 
 ```json
 {
     "temp" : 24.5,
     "humid" : 42,
-    "light" : 123
 }
 ```
 
@@ -46,3 +46,200 @@
     - 동시에 class 내 buffer에 해당 데이터를 갖고있는다
 
 - socketio 요청이 들어오면 ardu.py 안의 클래스에 있는 buffer의 값을 읽어 웹으로 보내준다.
+
+### 끝 !!!!!!
+
+![1.png](images/1.png)
+
+- 메인 화면
+    - socketio를 통해 실시간 mqtt를 통해 들어온 (esp8266으로부터) 받은 값을 보여준다.
+
+![2.png](images/2.png)
+
+- 데이터 저장 확인 화면
+    - mysql에 실시간 데이터 저장중.
+        - django의 여러 기능을 활용하여 리스트 형태로 뽑아냄
+
+![3.png](images/3.png)
+
+- 데이터를 클릭하면 세부 화면 확인 가능
+
+### esp8266 그림
+
+![4.jpeg](images/4.jpeg)
+
+- 여기 달려있는 DHT22로부터 받는다.
+
+```cpp
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include <SimpleDHT.h>
+#include <string.h>
+
+const char* ON = "On";
+const char* OFF = "Off";
+
+const char* ssid = "U+Net2469";
+const char* password = "1000003757";
+const char* mqtt_server = "3.34.87.77";
+
+int pinDHT22 = 14;
+SimpleDHT22 dht22(pinDHT22);
+float temperature = 0;
+float humidity = 0;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+unsigned long lastMsg = 0;
+#define MSG_BUFFER_SIZE (50)
+char msg[MSG_BUFFER_SIZE];
+int value = 0;
+
+void setup_wifi() {
+    delay(10);
+    Serial.println();
+    Serial.print("Connecting to");
+    Serial.println(ssid);
+    WiFi.mode(WIFI_STA); // station 모드
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED){
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("");
+    Serial.println("WiFi Connected");
+    Serial.println("IP address :");
+    Serial.println(WiFi.localIP());
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    char msg[length];
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] : ");
+    //동작한다
+    for(int i = 0; i < length; i++) {
+        msg[i] = (char)payload[i];
+    }
+    Serial.println(msg);
+    if (strcmp(msg, ON)==0){
+        Serial.println("On message got");
+    }
+    //
+}
+
+//커넥션 끊어 졌을 때 
+void reconnect() {
+    while (!client.connected()) {
+        Serial.print("Attemp MQTT Conn");
+        //create random client id
+        String clientId = "ESP8266Client-";
+        clientId += String(random(0xffff), HEX);
+
+        if (client.connect(clientId.c_str())) {
+            Serial.println("conn");
+            client.publish("2015146007/conn", "conn sucess");
+            client.subscribe("2015146007/inTopic");
+        } else {
+            Serial.print("failed, rc=");
+            Serial.print(client.state());
+            delay(5000);
+        }
+    }
+}
+
+void get_dht22() {
+    int err = SimpleDHTErrSuccess;
+    if ((err = dht22.read2(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+        Serial.print("Read DHT22 failed, err="); Serial.println(err); delay(2000);
+        return;
+    }
+}
+
+void setup() {
+    pinMode(16, OUTPUT);
+    Serial.begin(115200);
+    setup_wifi();
+    client.setServer(mqtt_server, 1883);
+    client.subscribe("2015146007/inTopic");
+    client.setCallback(callback);//setCallback 구현 당시에 callback함수의 인자로
+    // void callback(char* topic, byte* payload, unsigned int length) 미리 정의가 된 것?
+}
+
+void loop() {
+    if (!client.connected()) {
+        reconnect();
+    }
+    client.loop();
+    unsigned long now = millis();
+
+    if (now - lastMsg > 60000) {//1분마다 한번씩 송신
+        lastMsg = now;
+        ++value;
+        get_dht22();
+        snprintf(msg, MSG_BUFFER_SIZE, "{ \"temp\" : %2.f, \"humid\" : %.2f }", temperature, humidity, value);
+        //Serial.print("publish message: ");
+        //Serial.println(msg);
+        client.publish("2015146007/DHT22", msg);
+    }
+}
+```
+
+
+### 장고 코드는 깃헙에
+
+- 제일 중요한 코드
+    - <strong> __init__.py</strong>
+```python3
+#socketio 를 활용해서
+#django 서버가 socketio까지 뿌리고
+#html에서는 socketio recv해서 Dom을 직접 조작해서 보여주자..
+#테스트해보자
+from logging import debug
+from time import sleep
+from flask import Flask
+from flask_socketio import SocketIO, emit
+from time import sleep
+from flask_cors import CORS
+from .ardu import Arduino
+
+# import multiprocessing as mp
+# from multiprocessing import Array #for IPC shared memory
+
+from threading import Thread
+
+async_mode = None #for buffer flushing
+app = Flask(__name__) 
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=async_mode, cors_allowed_origins='*', port=9999)
+CORS(app)
+
+shared_list = [0, 0]
+print(shared_list)
+
+ard = Arduino(shared_list)
+th2 = Thread(target=ard.run, daemon=True)
+
+@app.route("/")
+def index():
+    return ("Invaild Path")
+
+@socketio.on('request', namespace='/data')
+def push_values(msg):
+    emit('rtdata', {'data':ard.get_data()})
+
+#데몬 프로세스 하나 생성 -> socketio 서버 런
+th1 = Thread(target=socketio.run, args=(app,), kwargs =  {"debug" :False, "port": 9999},
+daemon=True)
+
+
+th1.start()
+th2.start()
+
+
+print("__init__ has done")
+```
+
+- 개판이지만... django에서 어떻게든 socketio를 써보고자 하는 나의 처절한 몸부림이 담겨있는 코드
+
