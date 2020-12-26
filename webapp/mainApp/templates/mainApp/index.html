@@ -11,7 +11,7 @@
 <!-- 합쳐지고 최소화된 최신 자바스크립트 -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 <script>
-    var binder = io("http://localhost:9999/data");
+    var binder = io("http://3.34.87.77:9999/data");
 setInterval(function() {
   binder.emit('request', {'time': Date.now()});
 }, 10000);
