@@ -12,7 +12,7 @@ class IndexView(generic.ListView):
     context_object_name = 'latest_data_list'
 
     def get_queryset(self):
-        return Data.objects.order_by('-timestamp')[:10]
+        return Data.objects.order_by('timestamp')[:50]
 
 class DetailView(generic.DetailView):
     model = Data

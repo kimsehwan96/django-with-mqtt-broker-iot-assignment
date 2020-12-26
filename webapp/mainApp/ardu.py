@@ -1,39 +1,53 @@
 import random
 from paho.mqtt import client as mqtt_client
+from .DAO import DataDAO
+from datetime import datetime
+import json
+class Arduino:
+    def __init__(self):
+        self.broker = '3.34.87.77'
+        self.port = 1883
+        self.input_topic = "2015146007/DHT22"
+        self.client_id = f'python-mqtt-{random.randint(0, 100)}'
+        self.client = None
+        self.dao = DataDAO()
+        self.temp = None
+        self.humid = None
 
+    def connect_mqtt(self) -> mqtt_client:
+        def on_connect(client, userdata, flags, rc):
+            if rc == 0:
+                print("Connected to MQTT Broker!")
+            else:
+                print("Failed to connect, return code %d\n", rc)
+        client = mqtt_client.Client(self.client_id)
+        client.on_connect = on_connect
+        client.connect(self.broker, self.port)
+        return client
+    
+    def subscribe(self, client: mqtt_client):
+        def on_message(client, userdata, msg):
+            #print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+            recv = msg.payload.decode()
+            jd = json.loads(recv)
+            if jd:
+                temp = jd.get('temp')
+                humid = jd.get('humid')
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+                self.temp =  temp
+                self.humid = humid
+                print("this is got : {}".format(jd))
+                self.dao.insert_data(temp, humid, timestamp)
+            else:
+                print("no data...")
 
-broker = '3.34.87.77'
-port = 1883
-topic = "2015146007/"
-# generate client ID with pub prefix randomly
-client_id = f'python-mqtt-{random.randint(0, 100)}'
+        client.subscribe(self.input_topic)
+        client.on_message = on_message
 
-def connect_mqtt() -> mqtt_client:
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            print("Connected to MQTT Broker!")
-        else:
-            print("Failed to connect, return code %d\n", rc)
+    def run(self):
+        self.client = self.connect_mqtt()
+        self.subscribe(self.client)
+        self.client.loop_start()
 
-    client = mqtt_client.Client(client_id)
-    client.on_connect = on_connect
-    client.connect(broker, port)
-    return client
-
-
-def subscribe(client: mqtt_client):
-    def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-
-    client.subscribe(topic)
-    client.on_message = on_message
-
-
-def run():
-    client = connect_mqtt()
-    subscribe(client)
-    client.loop_forever()
-
-
-if __name__ == '__main__':
-    run()
+    def get_data(self):
+        return json.dumps({"humid" : self.humid, "temp" : self.temp})

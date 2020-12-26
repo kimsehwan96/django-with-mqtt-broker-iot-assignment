@@ -8,6 +8,7 @@ from flask import Flask
 from flask_socketio import SocketIO, emit
 from time import sleep
 from flask_cors import CORS
+from .ardu import Arduino
 import random
 
 import multiprocessing as mp
@@ -20,13 +21,16 @@ thread = None
 thread_lock = Lock()
 CORS(app)
 
+ard = Arduino()
+p2 = mp.Process(target=ard.run(),daemon=True)
+
 @app.route("/")
 def index():
     return ("Invaild Path")
 
 @socketio.on('request', namespace='/data')
 def push_values(msg):
-    emit('rtdata', {'data':random.randint(50)})
+    emit('rtdata', {'data':ard.get_data()})
 
 #데몬 프로세스 하나 생성 -> socketio 서버 런
 p = mp.Process(target=socketio.run, args=(app,), kwargs =  {"debug" :True, "port": 9999},
