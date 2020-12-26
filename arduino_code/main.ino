@@ -101,11 +101,11 @@ void loop() {
     client.loop();
     unsigned long now = millis();
 
-    if (now - lastMsg > 2000) {
+    if (now - lastMsg > 60000) {//1분마다 한번씩 송신
         lastMsg = now;
         ++value;
         get_dht22();
-        snprintf(msg, MSG_BUFFER_SIZE, "{ \"temp\" : %2.f, \"humi\" : %.2f }", temperature, humidity, value);
+        snprintf(msg, MSG_BUFFER_SIZE, "{ \"temp\" : %2.f, \"humid\" : %.2f }", temperature, humidity, value);
         //Serial.print("publish message: ");
         //Serial.println(msg);
         client.publish("2015146007/DHT22", msg);

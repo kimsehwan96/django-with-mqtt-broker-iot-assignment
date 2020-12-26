@@ -1,10 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- 합쳐지고 최소화된 최신 CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
-{% if latest_data_list %}
-<ul>
+<!-- 부가적인 테마 -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+<!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="page-header">
+            <h1>실시간 데이터 저장 결과 <small>mysql-db</small></h1>
+          </div>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <ul class="nav nav-tabs">
+                <li role="presentation" ><a href="/mainApp/">실시간 mqtt</a></li>
+                <li role="presentation" class="active"><a href="#">저장된 데이터</a></li>
+              </ul>
+        </div>
+    </nav>
+
+    <div class="jumbotron">
+        {% if latest_data_list %}
+<ul class="list-group">
 {% for data in latest_data_list %}
-    <li><a href="{% url 'mqttApp:detail' data.id %}">{{ data.timestamp }}</a></li>
+    <li class="list-group-item"><a href="{% url 'mqttApp:detail' data.id %}">{{ data.timestamp }}</a></li>
 {% endfor %}
 </ul>
 {% else %}
 <p>No data are available.</p>
 {% endif %}
+      </div>
+
+    </body>
+</html>
+
+

@@ -1,3 +1,4 @@
+from time import time
 import MySQLdb
 import traceback
 from datetime import datetime
@@ -26,16 +27,17 @@ class DataDAO:
     def insert_data(self, temp, humid):
         self.temp = temp
         self.humid = humid
+        self.timestamp = datetime.now()
+        print("this is now ! {}".format(self.timestamp))
         con = self.get_conn()
         cursor = self.get_cursor(con)
 
         query = """
-        INSERT INTO mqttApp_data(timestamp, temp, humid) VALUES(%s, %s, %s)
+        INSERT INTO mqttApp_data(timestamp, temp, humid) VALUES(%s ,%s, %s)
         """
-        print(datetime.now().strftime("%Y-%m-%d %H:%I:%S"))
         print(str(self.temp), str(self.humid))
         try:
-            cursor.execute(query, (datetime.now().strftime("%Y-%m-%d %H:%I:%S"), self.temp, self.humid))
+            cursor.execute(query, (self.timestamp.strftime("%Y-%m-%d %H:%M:%S"), self.temp, self.humid))
             con.commit()
         except Exception as e:
             print(traceback.format_exc())
@@ -44,7 +46,6 @@ class DataDAO:
             cursor.close() #cursor를 커밋 이후 close한다.
             self.temp = None
             self.humid = None 
-            self.timestamp = None
 
 
 if __name__=="__main__":
