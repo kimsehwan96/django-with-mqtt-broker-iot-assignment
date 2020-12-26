@@ -8,6 +8,7 @@ ALLOWED_HOSTS = ['3.34.87.77','localhost'] #여기다 배포한 서버의 public
 # Application definition
 INSTALLED_APPS = [
     'mqttApp.apps.MqttappConfig',
+    'mainApp.apps.MainappConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
