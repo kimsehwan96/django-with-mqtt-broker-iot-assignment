@@ -16,6 +16,17 @@
 
 http://sehwanzzang.com:8000/mainApp/
 
+### 기획서
+
+#### S/W Flow chart
+
+![swfc.png](images/swfc.png)
+
+#### H/W Flow char
+
+![iothw.png](images/iothw.png)
+
+
 ## firt step
 
 - 새로운 파이썬 가상환경 생성
@@ -241,5 +252,131 @@ th2.start()
 print("__init__ has done")
 ```
 
-- 개판이지만... django에서 어떻게든 socketio를 써보고자 하는 나의 처절한 몸부림이 담겨있는 코드
+### mqtt를 이용하여 esp8266으로부터 데이터를 수집하는 코드.
+
+```python3
+import random
+from paho.mqtt import client as mqtt_client
+from .DAO import DataDAO
+from datetime import datetime
+import json
+from time import sleep
+class Arduino:
+    def __init__(self, shared_list):
+        self.broker = '3.34.87.77'
+        self.port = 1883
+        self.input_topic = "2015146007/DHT22"
+        self.client_id = f'python-mqtt-{random.randint(0, 100)}'
+        self.client = None
+        self.dao = DataDAO()
+        self.temp = None
+        self.humid = None
+        self.shared_list = shared_list
+
+    def connect_mqtt(self) -> mqtt_client:
+        def on_connect(client, userdata, flags, rc):
+            if rc == 0:
+                print("Connected to MQTT Broker!")
+            else:
+                print("Failed to connect, return code %d\n", rc)
+        client = mqtt_client.Client(self.client_id)
+        client.on_connect = on_connect
+        client.connect(self.broker, self.port)
+        return client
+    
+    def subscribe(self, client: mqtt_client):
+        def on_message(client, userdata, msg):
+            #print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+            recv = msg.payload.decode()
+            jd = json.loads(recv)
+            if jd:
+                temp = jd.get('temp')
+                humid = jd.get('humid')
+                self.temp =  temp
+                self.humid = humid
+                print("this is got : {}".format(jd))
+                self.dao.insert_data(temp, humid)
+            else:
+                print("no data...")
+
+        client.subscribe(self.input_topic)
+        client.on_message = on_message
+
+    def run(self):
+        self.client = self.connect_mqtt()
+        self.subscribe(self.client)
+        self.client.loop_start()
+        print('ardu process start to run')
+        self.get_data()
+
+    def get_data(self):
+        if ( (self.temp == None) & (self.humid == None)):
+            return [0, 0]
+        else:
+            return [self.temp, self.humid]
+```
+
+### 수집한 데이터를 mysql에 저장하는 코드
+
+```python3
+from time import time
+import MySQLdb
+import traceback
+from datetime import datetime
+
+class DataDAO:
+    def __init__(self):
+        #기초 정보를 셋업함
+        self.host = "3.34.87.77"
+        self.username = "root"
+        self.password = "j112189"
+        self.database = "iot_db"
+        self.temp = None
+        self.timestamp = None
+        self.humid = None
+    
+    
+    def get_conn(self):
+        db = MySQLdb.connect(user=self.username,
+        host=self.host, passwd=self.password, db=self.database)
+
+        return db
+
+    def get_cursor(self, connection):
+        return connection.cursor()
+
+    def insert_data(self, temp, humid):
+        self.temp = temp
+        self.humid = humid
+        self.timestamp = datetime.now()
+        print("this is now ! {}".format(self.timestamp))
+        con = self.get_conn()
+        cursor = self.get_cursor(con)
+
+        query = """
+        INSERT INTO mqttApp_data(timestamp, temp, humid) VALUES(%s ,%s, %s)
+        """
+        print(str(self.temp), str(self.humid))
+        try:
+            cursor.execute(query, (self.timestamp.strftime("%Y-%m-%d %H:%M:%S"), self.temp, self.humid))
+            con.commit()
+        except Exception as e:
+            print(traceback.format_exc())
+            cursor.close()
+        finally:
+            cursor.close() #cursor를 커밋 이후 close한다.
+            self.temp = None
+            self.humid = None 
+
+
+if __name__=="__main__":
+    d = DataDAO()
+    d.insert_data(10.5, 67.9)
+
+```
+
+- 위 코드는 mysql에 mqtt로 받은 데이터를 저장하는 코드이며
+- ardu.py 코드에서 이 코드 중 `insert_data()` 함수를 호출하여 데이터를 실시간으로 저장하게 된다.
+
+
 
