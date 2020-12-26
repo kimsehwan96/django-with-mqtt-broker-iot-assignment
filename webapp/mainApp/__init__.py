@@ -12,6 +12,7 @@ from .ardu import Arduino
 import random
 
 import multiprocessing as mp
+from multiprocessing import Array #for IPC shared memory
 
 async_mode = None #for buffer flushing
 app = Flask(__name__) 
@@ -21,8 +22,12 @@ thread = None
 thread_lock = Lock()
 CORS(app)
 
+shared_list = Array('d', range(2))
+shared_list = [0, 0]
+print(shared_list)
+
 ard = Arduino()
-p2 = mp.Process(target=ard.run(),daemon=True)
+p2 = mp.Process(target=ard.run,args=(shared_list, ), daemon=True)
 
 @app.route("/")
 def index():

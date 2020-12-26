@@ -13,7 +13,7 @@ class Data(models.Model):
         return "time : {} temp {} : humid : {}".format(
             self.timestamp, self.temp, self.humid
         )
-    timestamp = models.DateTimeField(auto_now_add=False)
+    timestamp = models.DateTimeField(auto_now=True)
     temp = models.FloatField(default=0)
     humid = models.FloatField(default=0)
 

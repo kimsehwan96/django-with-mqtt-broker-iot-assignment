@@ -13,6 +13,7 @@ class Arduino:
         self.dao = DataDAO()
         self.temp = None
         self.humid = None
+        self.shared_list = None 
 
     def connect_mqtt(self) -> mqtt_client:
         def on_connect(client, userdata, flags, rc):
@@ -33,21 +34,24 @@ class Arduino:
             if jd:
                 temp = jd.get('temp')
                 humid = jd.get('humid')
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
                 self.temp =  temp
                 self.humid = humid
                 print("this is got : {}".format(jd))
-                self.dao.insert_data(temp, humid, timestamp)
+                self.dao.insert_data(temp, humid)
             else:
                 print("no data...")
 
         client.subscribe(self.input_topic)
         client.on_message = on_message
 
-    def run(self):
+    def run(self, shared_list):
+        self.shared_list = shared_list
         self.client = self.connect_mqtt()
         self.subscribe(self.client)
         self.client.loop_start()
 
     def get_data(self):
-        return json.dumps({"humid" : self.humid, "temp" : self.temp})
+        if ( (self.temp == None) & (self.humid == None)):
+            self.shared_list = [0, 0]
+        else:
+            self.shared_list[self.temp, self.humid]
