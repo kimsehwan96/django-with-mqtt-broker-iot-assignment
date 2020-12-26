@@ -36,7 +36,7 @@ def push_values(msg):
     emit('rtdata', {'data':ard.get_data()})
 
 #데몬 프로세스 하나 생성 -> socketio 서버 런
-th1 = Thread(target=socketio.run, args=(app,), kwargs =  {"debug" :False, "port": 9999},
+th1 = Thread(target=socketio.run, args=(app,), kwargs =  {"debug" :False, "port": 9999, "host" : "0.0.0.0"},
 daemon=True)
 
 
