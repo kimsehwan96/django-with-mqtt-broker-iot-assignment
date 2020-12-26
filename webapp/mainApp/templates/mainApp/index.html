@@ -1,63 +1,90 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.0/socket.io.js" integrity="sha512-kRhNKRilFJ0TuMUgQK5O+d7Mo09dCmHLsxZb7sIwLfqpcF78O0OrwlajiS85/KTXxCNpkanNN17eEwgFtlFneQ==" crossorigin="anonymous"></script>
-        <!-- 합쳐지고 최소화된 최신 CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
-<!-- 부가적인 테마 -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<head>
+  <style type="text/css">
+    #map {
+  height: 400px;
+  width: 100%;
+}
+  </style>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDY9sKyb4Cv9YLWhAVn9U9konardJ6-TO0&callback=initMap&libraries=&v=weekly"
+    defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.0/socket.io.js"
+    integrity="sha512-kRhNKRilFJ0TuMUgQK5O+d7Mo09dCmHLsxZb7sIwLfqpcF78O0OrwlajiS85/KTXxCNpkanNN17eEwgFtlFneQ=="
+    crossorigin="anonymous"></script>
+  <!-- 합쳐지고 최소화된 최신 CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
-<!-- 합쳐지고 최소화된 최신 자바스크립트 -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
-<script>
+  <!-- 부가적인 테마 -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+  <!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <script>
     var binder = io("http://3.34.87.77:9999/data");
-setInterval(function() {
-  binder.emit('request', {'time': Date.now()});
-}, 10000);
-setInterval( function() {
-binder.on('rtdata', function(data) {
-  console.log('binder buffered: ', data)
-  var target = document.getElementById('data_0')
-  var target_2 = document.getElementById('data_1')
-  target.innerHTML = data.data[0]
-  target_2.innerHTML = data.data[1]
-});} ,10000);
-</script>
-    </head>
-    <body>
-        <div class="page-header">
-            <h1>실시간 데이터 mqtt <small>mqtt</small></h1>
-          </div>
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <ul class="nav nav-tabs">
-                <li role="presentation" class="active"><a href="#">실시간 mqtt</a></li>
-                <li role="presentation"><a href="/mqttApp/">저장된 데이터</a></li>
-              </ul>
-        </div>
-    </nav>
+    setInterval(function () {
+      binder.emit('request', { 'time': Date.now() });
+    }, 10000);
+    setInterval(function () {
+      binder.on('rtdata', function (data) {
+        console.log('binder buffered: ', data)
+        var target = document.getElementById('data_0')
+        var target_2 = document.getElementById('data_1')
+        target.innerHTML = data.data[0]
+        target_2.innerHTML = data.data[1]
+      });
+    }, 10000);
+  </script>
+  <script>
+function initMap() {
+  const mylocation = { lat: 37.345647, lng: 126.731217 };
+  const map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 15,
+    center: mylocation,
+  });
+  const marker = new google.maps.Marker({
+    position: mylocation,
+    map: map,
+  });
+}
+  </script>
+</head>
 
-    <div class="jumbotron">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-              <h3 class="panel-title">실시간 온도</h3>
-            </div>
-            <div class="panel-body" id ="data_0">
-             온도
-            </div>
-          </div>
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h3 class="panel-title">실시간 습도</h3>
-            </div>
-            <div class="panel-body" id = "data_1">
-              습도
-            </div>
-          </div>
+<body>
+  <div class="page-header">
+    <h1>실시간 데이터 mqtt <small>mqtt</small></h1>
+  </div>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <ul class="nav nav-tabs">
+        <li role="presentation" class="active"><a href="#">실시간 mqtt</a></li>
+        <li role="presentation"><a href="/mqttApp/">저장된 데이터</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="jumbotron">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">실시간 온도</h3>
       </div>
+      <div class="panel-body" id="data_0">
+        온도
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">실시간 습도</h3>
+      </div>
+      <div class="panel-body" id="data_1">
+        습도
+      </div>
+      <div id="map"></div>
+    </div>
+  </div>
 
-    </body>
+</body>
+
 </html>
-
-
