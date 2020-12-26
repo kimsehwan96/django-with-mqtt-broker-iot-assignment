@@ -1,0 +1,10 @@
+
+{% if latest_data_list %}
+<ul>
+{% for data in latest_data_list %}
+    <li><a href="{% url 'mqttApp:detail' data.id %}">{{ data.timestamp }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No data are available.</p>
+{% endif %}

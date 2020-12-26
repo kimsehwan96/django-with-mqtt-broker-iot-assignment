@@ -5,3 +5,6 @@ sqlparse==0.4.1
 
 #django mysql driver
 "mysqlclient>=1.4.0"
+
+#for mqtt
+paho-mqtt
