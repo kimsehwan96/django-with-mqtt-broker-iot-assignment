@@ -3,8 +3,9 @@ from paho.mqtt import client as mqtt_client
 from .DAO import DataDAO
 from datetime import datetime
 import json
+from time import sleep
 class Arduino:
-    def __init__(self):
+    def __init__(self, shared_list):
         self.broker = '3.34.87.77'
         self.port = 1883
         self.input_topic = "2015146007/DHT22"
@@ -13,7 +14,7 @@ class Arduino:
         self.dao = DataDAO()
         self.temp = None
         self.humid = None
-        self.shared_list = None 
+        self.shared_list = shared_list
 
     def connect_mqtt(self) -> mqtt_client:
         def on_connect(client, userdata, flags, rc):
@@ -44,14 +45,15 @@ class Arduino:
         client.subscribe(self.input_topic)
         client.on_message = on_message
 
-    def run(self, shared_list):
-        self.shared_list = shared_list
+    def run(self):
         self.client = self.connect_mqtt()
         self.subscribe(self.client)
         self.client.loop_start()
+        print('ardu process start to run')
+        self.get_data()
 
     def get_data(self):
         if ( (self.temp == None) & (self.humid == None)):
-            self.shared_list = [0, 0]
+            return [0, 0]
         else:
-            self.shared_list[self.temp, self.humid]
+            return [self.temp, self.humid]
