@@ -12,6 +12,12 @@
     - ec2
         - git pull origin master
 
+- 개발 과정
+    - feature branch 전략.
+
+![branch.png](images/branch.png)
+- 개발 완료 후 브랜치 상태.
+
 링크
 
 http://sehwanzzang.com:8000/mainApp/
