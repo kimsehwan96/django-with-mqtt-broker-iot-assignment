@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '^n_!gqc_auc$gb3ac4%r3n1ve$^zhq%kk6g+j0(e39zmz=i^u='
 DEBUG = True
-ALLOWED_HOSTS = ['3.34.87.77'] #여기다 배포한 서버의 public ip 기입 필요.
+ALLOWED_HOSTS = ['3.34.87.77','localhost'] #여기다 배포한 서버의 public ip 기입 필요.
 
 # Application definition
 INSTALLED_APPS = [
